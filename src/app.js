@@ -4,37 +4,39 @@ const morgan = require('morgan');
 const mysql = require('mysql');
 const myConnection = require('express-myconnection');
 const cors = require('cors');
-
+const bodyParser = require('body-parser');
 const app = express();
 
 // importing routes
-const userRoutes = require('./routes/users');
+const routes = require('./routes/route');
+
 
 //settings
 app.set('port', process.env.PORT || 8090);
+
 app.use(cors());
 
-
 //midelwares
+const verification = express.Router();
+
+verification.use((req, res, next) => {
+    let token = req.headers['x-access-token'] || req.headers['authorization'];
+    console.log(token)
+})
+
+
 app.use(morgan('dev'));
-app.use(myConnection(mysql, {
-    host: 'localhost',
-    user: 'root',
-    password: '11192102',
-    port: 3306,
-    database: 'pruebaBackend'
-}, 'single'));
+
 app.use(express.urlencoded({ extended: false }))
+app.disable('x-powered-by')
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
 // Middleware para analizar el contenido JSON de las solicitudes
 // app.use(express.json());
 
 //routes
-app.use('/', userRoutes);
-
-// static files
-app.use(express.static(path.join(__dirname, 'public')));
-
+app.use('/api/auth', require('./routes/auth'));
 
 // Manejo de errores 404 para rutas no encontradas
 app.use((req, res, next) => {
